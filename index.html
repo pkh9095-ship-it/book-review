@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>책 한 장 — 인스타 서평 만들기</title>
+  <meta name="description" content="책 정보와 밑줄 친 문장, 느낀 점을 채우면 인스타그램 본문 글과 정사각형 서평 이미지를 만들어 주는 나만의 서평 도구.">
+  <meta name="theme-color" content="#F2E6CC">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23F2E6CC'/%3E%3Crect x='12' y='34' width='40' height='12' fill='%23F5C451'/%3E%3Cpath d='M18 18h28v26H18z' fill='none' stroke='%2333261D' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="masthead">
+    <p class="mark">책 한 장</p>
+    <h1>다 읽은 책, 빈칸만 채우면<br>오늘의 서평 한 장.</h1>
+  </header>
+
+  <main class="desk">
+    <form id="form" class="note" novalidate>
+      <fieldset class="group">
+        <legend>어떤 책인가요</legend>
+        <label class="field field--title">
+          <span class="field__name">책 제목</span>
+          <input name="title" type="text" autocomplete="off" required>
+        </label>
+        <div class="row">
+          <label class="field">
+            <span class="field__name">저자</span>
+            <input name="author" type="text" autocomplete="off">
+          </label>
+          <label class="field">
+            <span class="field__name">출판사</span>
+            <input name="publisher" type="text" autocomplete="off">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>밑줄 친 문장</legend>
+        <p class="hint">세 개까지 적을 수 있어요. 이미지 카드에는 동그라미를 누른 문장이 들어가요.</p>
+        <div class="quotes" id="quotes"></div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>느낀 점</legend>
+        <label class="field">
+          <span class="field__name visually-hidden">느낀 점</span>
+          <textarea name="thoughts" rows="6"></textarea>
+        </label>
+        <label class="field">
+          <span class="field__name">이런 분께 추천</span>
+          <input name="recommend" type="text" autocomplete="off">
+        </label>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>해시태그</legend>
+        <label class="field">
+          <span class="field__name visually-hidden">해시태그</span>
+          <input name="tags" type="text" autocomplete="off" placeholder="#책스타그램 #독서기록">
+        </label>
+        <p class="hint">띄어쓰기로 나눠 적으면 앞에 #이 없어도 붙여 드려요.</p>
+      </fieldset>
+
+      <div class="submit">
+        <button type="submit" class="btn btn--primary">서평 만들기</button>
+        <button type="button" class="btn btn--quiet" id="reset">새로 쓰기</button>
+        <p class="error" id="formError" role="alert"></p>
+      </div>
+    </form>
+
+    <section class="result" id="result" aria-labelledby="resultTitle">
+      <h2 id="resultTitle">미리보기</h2>
+      <div class="empty" id="emptyResult">
+        <p>빈칸을 채우고 <strong>서평 만들기</strong>를 누르면 여기에 인스타 본문 글과 이미지 카드가 나와요.</p>
+      </div>
+      <div class="output" id="output" hidden>
+        <canvas id="card" width="1080" height="1080" role="img" aria-label="서평 이미지 카드 미리보기"></canvas>
+        <div class="actions">
+          <button type="button" class="btn btn--primary" id="saveImage">이미지 저장</button>
+          <button type="button" class="btn" id="shareImage" hidden>휴대폰으로 공유</button>
+        </div>
+        <pre class="caption" id="caption"></pre>
+        <div class="actions">
+          <button type="button" class="btn btn--primary" id="copyText">글 복사</button>
+          <button type="button" class="btn" id="saveReview">내 서평 목록에 저장</button>
+        </div>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <section class="shelf" aria-labelledby="shelfTitle">
+    <h2 id="shelfTitle">내 서평 목록</h2>
+    <p class="hint">이 기기, 이 브라우저에만 저장돼요. 브라우저 기록을 지우면 목록도 사라져요.</p>
+    <ol class="shelf__list" id="shelfList"></ol>
+    <p class="empty" id="shelfEmpty">아직 저장한 서평이 없어요. 서평을 만들고 <strong>내 서평 목록에 저장</strong>을 누르면 여기에 쌓여요.</p>
+  </section>
+
+  <template id="quoteTemplate">
+    <div class="quote">
+      <label class="quote__pick">
+        <input type="radio" name="cardQuote">
+        <span class="visually-hidden">이 문장을 카드에 넣기</span>
+      </label>
+      <label class="field quote__text">
+        <span class="field__name visually-hidden">밑줄 친 문장</span>
+        <textarea rows="2"></textarea>
+      </label>
+      <label class="field quote__page">
+        <span class="field__name">쪽</span>
+        <input type="text" inputmode="numeric" autocomplete="off">
+      </label>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
