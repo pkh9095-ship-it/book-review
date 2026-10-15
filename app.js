@@ -79,6 +79,8 @@
     f.thoughts.value = data.thoughts || "";
     f.recommend.value = data.recommend || "";
     f.tags.value = data.tags || "";
+    f.title.removeAttribute("aria-invalid");
+    formError.textContent = "";
   }
 
   /* ---------- 인스타 본문 글 자동 정리 ---------- */
@@ -209,7 +211,7 @@
     document.dispatchEvent(new CustomEvent("review:reset"));
   }
 
-  document.getElementById("reset").addEventListener("click", () => {
+  document.getElementById("newReview").addEventListener("click", () => {
     const d = readForm();
     const hasText = d.title || d.thoughts || d.quotes.some((q) => q.text);
     if (hasText && !window.confirm("적어 둔 내용을 지우고 새로 쓸까요?")) return;
